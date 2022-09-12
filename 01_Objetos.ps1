@@ -1,14 +1,16 @@
-#Set-ExecutionPolicy RemoteSigned #Se recomienda el uso de RemoteSigned porque permite el código almacenado y escrito localmente, y requiere que el código adquirido de forma remota se firme con un certificado de una raíz confiable.
+<# 
+Este es un comentario 
+de multiples líneas 
+#>
+
+Set-ExecutionPolicy RemoteSigned Se recomienda el uso de RemoteSigned porque permite el código almacenado y escrito localmente, y requiere que el código adquirido de forma remota se firme con un certificado de una raíz confiable.
 
 Write-Host "Hola mundo" #Escribe un mensaje en la pantalla. El mensaje se muestra solo en stdout es decir en la consola.
 Write-Output "Hola mundo" > saludo.txt #Escribe un archivo con el texto que se le pasa como parámetro.
 
 $variable = Write-Output "Hola mundo" #Declara una variable y la asigna con el texto que se le pasa como parámetro.
 
-<# 
-Este es un comentario 
-de multiples líneas 
-#>
+
 
 Get-ChildItem | ? { $_.Name -eq "saludo.txt" } #Obtiene una lista de archivos que coincidan con el criterio de búsqueda. El simbolo ? es un alias para el operador de condición tipo Donde-Objeto.   
 
@@ -25,8 +27,4 @@ $Object = New-Object -TypeName PSObject -Property @{
     Name = "Hola mundo"
     Age = "23"
 }
-
-#Archivos .CSV
-
-$CSVfile = New-Object -TypeName System.IO.StreamWriter("saludo.csv") #Crea un archivo .CSV.
 
