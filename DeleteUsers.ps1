@@ -2,41 +2,48 @@
 # LOG
 Start-Transcript ("c:\scripts\logs\OWNER-ScriptLog{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
 
-# CARPETA PERFILES
-    $origen = "C:\Users"
+function ShowUsers {
+    param (
+        [Object[]]$User,
+        [String]$Title
+    )
+    $ShowUsersTemp = $User | Out-GridView -PassThru -Title $Title
+    return  $ShowUsersTemp
+}
 
-# LISTAR PERFILES
-    Get-ChildItem $origen | Select-Object Name | Set-Content "c:\scripts\perfiles.txt"
+function RemoveUsers {
+    param (
+        [Object[]]$User,
+        [Object[]]$Userpath
+    )
 
-    # Eliminar valores
-    (Get-Content "c:\scripts\perfiles.txt") -replace ("@{Name=", "") -replace ("}","") | Set-Content "c:\scripts\perfiles.txt"
-    # Quitamos de la lista los usuarios que no queremos que borre
-    (Get-Content "c:\scripts\perfiles.txt") -replace ("Administrador", "") -replace ("runzue","") -replace ("Public","") -replace ("Default","") -replace ("stark","") -replace ("svc_antivirus","") -replace ("user","") | Set-Content "c:\scripts\perfiles.txt"
-    # Limpiamos los espacios en blanco y exportamos a TXT
-    (Get-Content "c:\scripts\perfiles.txt") | ? {$_.trim() -ne "" } | Set-Content "c:\scripts\perfiles.txt"
-    # Pasamos contenido a variable para tratar el dato
-    $perfiles= Get-Content "c:\scripts\perfiles.txt"
+    $title    = 'Eliminar Usuarios'
+    $question1 = "Los siguientes usuarios seran eliminados"
+    $question2 = $Userpath -Join "`r"
+    $question3 = "¿Estas seguro que deseas continuar?"
 
-# SI EXISTEN PERFILES COMIENZA BORRADO 
-if ($perfiles) {
-    
-    # RECORRIDO DEL FICHERO
-    ForEach ($p in $perfiles) {
-    
-    if($p){
-        # BORRADO DE PERFIL
-        Remove-Item -Path "C:\Users\$p" -Force -Recurse
-    }
-    # FINAL DEL FICHERO
-    else{
-        Write-Output "Todos los perfiles procesados"
-    }
+    $question = "$question1{0}$question2{0}$question3" -f [environment]::NewLine
+    $choices  = '&Yes', '&No'
+
+	$popup = New-Object -ComObject wscript.shell
+	$decision = $popup.Popup("$question",0,"$title",64+1)
+
+    if ($decision -eq 1) 
+	{
+        $User | Remove-WmiObject
+    } else {
+        Write-Host 'Cancelled'
     }
 }
-else {
-    Write-Output "No hay perfiles a eliminar"
-}
-# Borrar TXT
-Remove-Item "c:\scripts\perfiles.txt"
-# Paramos log
+
+$accounts = Get-WmiObject -Class Win32_UserProfile | Where-Object {$_.Special -ne 'Special'}
+
+$allusers = $accounts | Select-Object @{Name='UserName';Expression={Split-Path $_.LocalPath -Leaf}}, LocalPath, Loaded, SID, @{Name='LastUsed';Expression={$_.ConvertToDateTime($_.LastUseTime)}}
+
+$_Selectuser = ShowUsers -User $allusers -Title "Remove Users"
+
+$rmvuser = $accounts | Where-Object {$_.SID -in $_Selectuser.SID}
+
+RemoveUsers -User $rmvuser -Userpath $_SelectUser.LocalPath
+
 Stop-Transcript
