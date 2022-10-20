@@ -91,7 +91,7 @@ if ($uninstall -eq "Y"){
         }
     }
 
-    #Locate installation folder
+    #Folder de instalacion
     $localAppData = "$($env:LOCALAPPDATA)\Microsoft\Teams"
     $programData = "$($env:ProgramData)\$($env:USERNAME)\Microsoft\Teams"
     
@@ -102,6 +102,7 @@ if ($uninstall -eq "Y"){
     elseif (Test-Path "$($programData)\Current\Teams.exe") {
         unInstallTeams($programData)
     }
+    
     else {
         Write-Warning  "No existe la instalacion de teams"
     }
