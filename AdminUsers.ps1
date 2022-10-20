@@ -8,7 +8,7 @@ Apoyo de interfaz para ordenar y filtrar usuarios a eliminar.
 #>
 
 
-<# El registro de la sesion en PowerShell se gusrda en un archivo de texto ubicado en c:\scripts\logs\ #>
+<# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
 Start-Transcript ("c:\scripts\logs\AdminUsers\AdminUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
 
 <#Esta funcion envía la salida a una tabla interactiva en una ventana separada #>
@@ -21,9 +21,10 @@ function ShowUsers {
     return  $ShowUsersTemp
 }
 
-<#Funcion para eliminacion de usuarios con Remove-WmiObject#>
+
 
 function RemoveUsers {
+    <#Funcion para eliminacion de usuarios con Remove-WmiObject#>
     param (
         [Object[]]$User,
         [Object[]]$Userpath

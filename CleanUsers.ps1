@@ -3,7 +3,7 @@
 Este Script busca los usuarios que iniciaron sesión en una computadora unida a un dominio y permite la limpieza.
 .DESCRIPTION
 Busca usuarios usuarios iniciaron sesión en una computadora unida a un dominio en el contexto de administrador
-Apoyo de interfaz para ordenar y filtrar usuarios a eliminar.
+limpia carpetas para liberar espacio en el disco duro.
 #>
 
 <# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
@@ -35,57 +35,61 @@ $usuarios = $accounts | Select-Object LocalPath
 
 
     if ($usuarios) {
-        ForEach ($usuario in $usuarios) {
-		
-            $cont=$cont+1
 
-            $usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
+        ForEach ($usuario in $usuarios) {
+		<# Recorre los usuarios existentes #>
+            
+        $usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
             
             try {
+                
                 $name=$usuario.Substring(9)
-                "$($name):"
+                
+                Write-Host "$($name):" -ForegroundColor Yellow
 
                 if($name.Length.Equals(11)){
-            
+                    
+                    $cont=$cont+1
+
+                    if (Test-Path "$($usuario)\AppData\Local\Microsoft\Teams"){
+                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\Teams" -Force -Recurse
+                        Write-Host "   Update.exe $($name)" -ForegroundColor Red
+                    
+                    }
+
+                    if (Test-Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache") {
+                        <# Borrado de Cache Chrome #>
+                        Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse
+                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                        #Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse -Confirm:$false
+                    }
+                   
+                    if (Test-Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin") {
+                        <# Borrado de TeamsMeetingAddin #>
+                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin" -Force -Recurse
+                        Write-Host "   Teams meeting en $($name)" -ForegroundColor Red
+                    }
+
                     if (Test-Path "$($usuario)\AppData\Roaming\Microsoft\Teams") {
-                        <# Action to perform if the condition is true #>
+                        <# Borrado de Roaming teams#>
                         Remove-Item -Path "$($usuario)\AppData\Roaming\Microsoft\Teams" -Force -Recurse
                         Write-Host "   Roaming $($usuario.Substring(9,11))" -ForegroundColor Red
                     }
                     
-                    if (Test-Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin") {
-                        <# Action to perform if the condition is true #>
-                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin" -Force -Recurse
-                        Write-Host "   Teams meeting en $($name)" -ForegroundColor Red
-                    }
-                
                     if (Test-Path "$($usuario)\AppData\Roaming\Teams\Dictionaries") {
-                            <# Action to perform if the condition is true #>
-                            Remove-Item -Path "$($usuario)\AppData\Roaming\Teams\Dictionaries" -Force -Recurse
-                            Write-Host "   Roaming $($name)" -ForegroundColor Red
-                    }
-
-                    if (Test-Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache") {
-                            <# Action to perform if the condition is true #>
-                            Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse
-                            Write-Host "   Roaming $($name)" -ForegroundColor Red
-                            #Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse -Confirm:$false
-                    }
-                            
-                    if (Test-Path "$($usuario)\AppData\Local\Microsoft\Teams"){
-                            Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\Teams" -Force -Recurse
-                            Write-Host "   Update.exe $($name)" -ForegroundColor Red
-                    
-                    }
+                        <# Borrado de diccionarios#>
+                        Remove-Item -Path "$($usuario)\AppData\Roaming\Teams\Dictionaries" -Force -Recurse
+                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                    }     
                     
                     if (Test-Path "$($usuario)\Desktop") {
-                        <# Action to perform if the condition is true #>
+                        <# Borrado de Escritorio#>
                         Remove-Item -Path "$($usuario)\Desktop\*.*" -Force -Recurse
                         Write-Host "   Roaming $($name)" -ForegroundColor Red
                     }
 
                     if (Test-Path "$($usuario)\Documents") {
-                        <# Action to perform if the condition is true #>
+                        <# Borrado de documentos#>
                         Remove-Item -Path "$($usuario)\Documents\*.*" -Force -Recurse
                         Write-Host "   Roaming $($name)" -ForegroundColor Red
                     }
