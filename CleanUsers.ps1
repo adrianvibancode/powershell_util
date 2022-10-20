@@ -6,6 +6,10 @@ Busca usuarios usuarios iniciaron sesión en una computadora unida a un dominio 
 Apoyo de interfaz para ordenar y filtrar usuarios a eliminar.
 #>
 
+<# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
+Start-Transcript ("c:\scripts\logs\CleanUsers\CleanUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
+
+<# Funcion que muestra informacion de disco duro#>
 function ShowDisk {
     Get-WMIObject  -Class Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3}  `
        | Select-Object @{n="Unidad";e={($_.Name)}}, 
@@ -16,16 +20,19 @@ function ShowDisk {
                        
    }
 
-Start-Transcript ("c:\scripts\logs\CleanUsers\CleanUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
 
 Write-host "Estado del espacio de disco duro al inicio de la sesion:" -ForegroundColor Red
 ShowDisk
 
-
-$accounts = Get-WmiObject -Class Win32_UserProfile | Where-Object {$_.Special -ne 'Special'}
-$usuarios = $accounts | Select-Object LocalPath
+<# Obtener UserProfile con Get-WmiObject #>
 $name=""
 $cont=0
+
+<# Obtener UserProfile con Get-WmiObject #>
+$accounts = Get-WmiObject -Class Win32_UserProfile | Where-Object {$_.Special -ne 'Special'}
+<# Seleccionde propiedad LocalPath #>
+$usuarios = $accounts | Select-Object LocalPath
+
 
     if ($usuarios) {
         ForEach ($usuario in $usuarios) {
