@@ -16,12 +16,13 @@ Cuando el equipo no esta en dominio.
 
 1. Presiona la tecla windows + R y pega esto:
 
-´´´
+'''
 powershell -Command "Start-Process PowerShell -Verb RunAs
-´´´
+'''
 2. Pega esto en consola
-´´´
+
+'''
 Set-ExecutionPolicy RemoteSigned
-´´´ 
+'''
 
 Me encuentras en [GitHub](https://github.com/adrianvibancode)
