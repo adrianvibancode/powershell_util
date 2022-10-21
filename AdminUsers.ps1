@@ -1,10 +1,10 @@
 
 <#
 .SYNOPSIS
-Este Script busca los usuarios que iniciaron sesión en una computadora unida a un dominio y permite la eliminación.
+Este Script busca los usuarios que iniciaron sesión en una computadora unida a un dominio y permite su eliminación.
 .DESCRIPTION
-Busca usuarios usuarios iniciaron sesión en una computadora unida a un dominio en el contexto de administrador
-Apoyo de interfaz para ordenar y filtrar usuarios a eliminar.
+Busca usuarios que iniciaron sesión en una computadora unida a un dominio en el contexto de administrador
+Con el uso de la tabla interactiva en una ventana separada se puede ordenar y filtrar usuarios a eliminar.
 #>
 
 
