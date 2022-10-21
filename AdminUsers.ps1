@@ -34,15 +34,13 @@ function RemoveUsers {
     $question1 = "Los siguientes usuarios seran eliminados"
     $question2 = $Userpath -Join "`r"
     $question3 = "¿Estas seguro que deseas continuar?"
-
     $question = "$question1{0}$question2{0}$question3" -f [environment]::NewLine
     $choices  = '&Yes', '&No'
 
 	$popup = New-Object -ComObject wscript.shell
 	$decision = $popup.Popup("$question",0,"$title",64+1)
 
-    if ($decision -eq 1) 
-	{
+    if ($decision -eq 1){
         $User | Remove-WmiObject
     } else {
         Write-Host 'Cancelado'
@@ -61,3 +59,5 @@ $rmvuser = $accounts | Where-Object {$_.SID -in $_Selectuser.SID}
 RemoveUsers -User $rmvuser -Userpath $_SelectUser.LocalPath
 
 Stop-Transcript
+
+Start-Sleep -Seconds 10

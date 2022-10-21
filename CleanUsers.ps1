@@ -6,25 +6,21 @@ Busca usuarios usuarios iniciaron sesión en una computadora unida a un dominio 
 limpia carpetas para liberar espacio en el disco duro.
 #>
 
+
 <# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
 Start-Transcript ("c:\scripts\logs\CleanUsers\CleanUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
 
 <# Funcion que muestra informacion de disco duro#>
 function ShowDisk {
-    Get-WMIObject  -Class Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3}  `
-       | Select-Object @{n="Unidad";e={($_.Name)}}, 
-                       @{n="Etiqueta";e={($_.VolumeName)}}, 
-                       @{n='Tamaño (GB)';e={"{0:n2}" -f ($_.size/1gb)}}, 
-                       @{n='Libre (GB)';e={"{0:n2}" -f ($_.freespace/1gb)}}, 
-                       @{n='% Libre';e={"{0:n2}" -f ($_.freespace/$_.size*100)}}
-                       
-   }
+    Get-WMIObject  -Class Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | Select-Object @{n="Unidad";e={($_.Name)}}, @{n="Etiqueta";e={($_.VolumeName)}},@{n='Tamaño (GB)';e={"{0:n2}" -f ($_.size/1gb)}}, @{n='Libre (GB)';e={"{0:n2}" -f ($_.freespace/1gb)}}, @{n='% Libre';e={"{0:n2}" -f ($_.freespace/$_.size*100)}}
+}
 
 
-Write-host "Estado del espacio de disco duro al inicio de la sesion:" -ForegroundColor Red
+
+Write-Host "Status del disco" 
 ShowDisk
 
-<# Obtener UserProfile con Get-WmiObject #>
+<# Variables de apoyo #>
 $name=""
 $cont=0
 
@@ -35,17 +31,15 @@ $usuarios = $accounts | Select-Object LocalPath
 
 
     if ($usuarios) {
-
-        ForEach ($usuario in $usuarios) {
-		<# Recorre los usuarios existentes #>
-            
-        $usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
-            
+	<# Recorre los usuarios existentes #>
+        
+	ForEach ($usuario in $usuarios) {
+	
+	$usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
+	
             try {
-                
-                $name=$usuario.Substring(9)
-                
-                Write-Host "$($name):" -ForegroundColor Yellow
+                $name=$usuario.Substring(9)	
+        	Write-Host "$($name):"
 
                 if($name.Length.Equals(11)){
                     
@@ -53,56 +47,59 @@ $usuarios = $accounts | Select-Object LocalPath
 
                     if (Test-Path "$($usuario)\AppData\Local\Microsoft\Teams"){
                         Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\Teams" -Force -Recurse
-                        Write-Host "   Update.exe $($name)" -ForegroundColor Red
+                        Write-Host "   $($name) ... Remove Local\Microsoft\Teams" -ForegroundColor Yellow
                     
                     }
 
                     if (Test-Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache") {
                         <# Borrado de Cache Chrome #>
                         Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse
-                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                        Write-Host "   $($name) ... Remove \Local\Google\Chrome\User Data\Default\Cache" -ForegroundColor Yellow
                         #Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse -Confirm:$false
                     }
                    
                     if (Test-Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin") {
                         <# Borrado de TeamsMeetingAddin #>
                         Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin" -Force -Recurse
-                        Write-Host "   Teams meeting en $($name)" -ForegroundColor Red
+                        Write-Host "   $($name) ... Remove Teams meeting" -ForegroundColor Yellow
                     }
 
                     if (Test-Path "$($usuario)\AppData\Roaming\Microsoft\Teams") {
                         <# Borrado de Roaming teams#>
                         Remove-Item -Path "$($usuario)\AppData\Roaming\Microsoft\Teams" -Force -Recurse
-                        Write-Host "   Roaming $($usuario.Substring(9,11))" -ForegroundColor Red
+                        Write-Host "   $($name) ... Remove Roaming\Microsoft\Teams" -ForegroundColor Yellow
                     }
                     
                     if (Test-Path "$($usuario)\AppData\Roaming\Teams\Dictionaries") {
                         <# Borrado de diccionarios#>
                         Remove-Item -Path "$($usuario)\AppData\Roaming\Teams\Dictionaries" -Force -Recurse
-                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                        Write-Host "   $($name) ... Remove Roaming\Teams\Dictionaries" -ForegroundColor Yellow
                     }     
                     
                     if (Test-Path "$($usuario)\Desktop") {
                         <# Borrado de Escritorio#>
-                        Remove-Item -Path "$($usuario)\Desktop\*.*" -Force -Recurse
-                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                        #Remove-Item -Path "$($usuario)\Desktop\*.*" -Force -Recurse
+                        Write-Host "   $($name) ... Remove Desktop" -ForegroundColor Red
                     }
 
                     if (Test-Path "$($usuario)\Documents") {
                         <# Borrado de documentos#>
-                        Remove-Item -Path "$($usuario)\Documents\*.*" -Force -Recurse
-                        Write-Host "   Roaming $($name)" -ForegroundColor Red
+                        #Remove-Item -Path "$($usuario)\Documents\*.*" -Force -Recurse
+                        Write-Host "   $($name) ... Remove Documents" -ForegroundColor Red
                     }
-                }
+                }else{
+			Write-Host "   El usuario no es alumno" -ForegroundColor Yellow
+		}
             }catch{
-                "El usuario $($usuario)) no es alumno `n"+$Error[0]
+                Write-Host "Error: existe un perfil de paginacion" -ForegroundColor Red
             }
         }
-    
-    Write-Output "$($cont) usuarios procesados."
+    }
+    Write-Host "$($cont) usuarios procesados." -ForegroundColor Green
+    Clear-Variable cont
 
     
-    Write-host "Estado del espacio de disco duro al final de la sesion:" -ForegroundColor Green
+    Write-Host "Disco" 
     ShowDisk
 
     Start-Sleep -Seconds 10
