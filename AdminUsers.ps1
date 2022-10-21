@@ -58,6 +58,8 @@ $rmvuser = $accounts | Where-Object {$_.SID -in $_Selectuser.SID}
 <#Se manda el resultado a la funcion Remove Users#>
 RemoveUsers -User $rmvuser -Userpath $_SelectUser.LocalPath
 
+Write-Host "Usuarios eliminados $($_SelectUser.LocalPath)" 
+
 Stop-Transcript
 
 Start-Sleep -Seconds 10

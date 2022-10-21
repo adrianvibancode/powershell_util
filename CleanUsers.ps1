@@ -16,7 +16,6 @@ function ShowDisk {
 }
 
 
-
 Write-Host "Status del disco" 
 ShowDisk
 
@@ -38,8 +37,9 @@ $usuarios = $accounts | Select-Object LocalPath
 	$usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
 	
             try {
+                
                 $name=$usuario.Substring(9)	
-        	Write-Host "$($name):"
+        	    Write-Host "$($name):"
 
                 if($name.Length.Equals(11)){
                     
