@@ -3,11 +3,14 @@ Herramientas de uso para el mantenimiento y gestión en area de TI.
 
 ## AdminUser
     Con el uso de la tabla interactiva en una ventana separada se puede ordenar y filtrar usuarios a eliminar.
-    > Realiza una busqueda de usuarios que iniciaron sesión en una computadora unida a un dominio en el contexto de administrador.
+
+> Realiza una busqueda de usuarios que iniciaron sesión en una computadora unida a un dominio en el contexto de administrador.
 
 ## CleanUser
     Borra carpetas de teams para liberar espacio en el disco duro.
-    > Realiza una busqueda de usuarios que iniciaron sesión en una computadora unida a un dominio en el contexto de administrador.
+
+
+> Realiza una busqueda de usuarios que iniciaron sesión en una computadora unida a un dominio en el contexto de administrador.
     
 
 
@@ -28,4 +31,4 @@ powershell -Command "Start-Process PowerShell -Verb RunAs
 Set-ExecutionPolicy RemoteSigned
 ```
 
-Este repositorio lo encuentras en [GitHub](https://github.com/adrianvibancode)
+Este repositorio lo encuentras en [GitHub](https://github.com/adrianvibancode/powershell_util)
