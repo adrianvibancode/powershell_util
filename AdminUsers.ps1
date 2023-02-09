@@ -7,6 +7,7 @@ Busca usuarios que iniciaron sesión en una computadora unida a un dominio en el
 Con el uso de la tabla interactiva en una ventana separada se puede ordenar y filtrar usuarios a eliminar.
 #>
 
+Set-ExecutionPolicy RemoteSigned
 
 <# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
 Start-Transcript ("c:\scripts\logs\AdminUsers\AdminUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
@@ -63,3 +64,4 @@ Write-Host "Usuarios eliminados $($_SelectUser.LocalPath)"
 Stop-Transcript
 
 Start-Sleep -Seconds 10
+Restart-Computer
