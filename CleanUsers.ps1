@@ -1,18 +1,24 @@
 <#
 .SYNOPSIS
-Este Script busca los usuarios que iniciaron sesión en una computadora unida a un dominio y permite la limpieza.
+Este Script limpia cache de Usuarios locales unidos a dominio.
 .DESCRIPTION
-Busca usuarios usuarios iniciaron sesión en una computadora unida a un dominio en el contexto de administrador
 limpia carpetas para liberar espacio en el disco duro.
 #>
 
+Set-ExecutionPolicy RemoteSigned
 
 <# El registro de la sesion en PowerShell se guarda en un archivo de texto ubicado en c:\scripts\logs\ #>
 Start-Transcript ("c:\scripts\logs\CleanUsers\CleanUsers{0:yyyyMMdd-HHmm}.txt" -f (Get-Date))
 
-<# Funcion que muestra informacion de disco duro#>
+<# Funcion que muestra la informacion del disco duro#>
 function ShowDisk {
     Get-WMIObject  -Class Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | Select-Object @{n="Unidad";e={($_.Name)}}, @{n="Etiqueta";e={($_.VolumeName)}},@{n='Tamaño (GB)';e={"{0:n2}" -f ($_.size/1gb)}}, @{n='Libre (GB)';e={"{0:n2}" -f ($_.freespace/1gb)}}, @{n='% Libre';e={"{0:n2}" -f ($_.freespace/$_.size*100)}}
+}
+
+function Get-Size
+{
+ param([string]$pth)
+ "{0:n2}" -f ((gci -path $pth -recurse | measure-object -property length -sum).sum /1mb) + " mb"
 }
 
 
@@ -23,9 +29,9 @@ ShowDisk
 $name=""
 $cont=0
 
-<# Obtener UserProfile con Get-WmiObject #>
+<# Obtener Perfil de dominio local con Get-WmiObject #>
 $accounts = Get-WmiObject -Class Win32_UserProfile | Where-Object {$_.Special -ne 'Special'}
-<# Seleccionde propiedad LocalPath #>
+<# Seleccion de propiedad LocalPath #>
 $usuarios = $accounts | Select-Object LocalPath
 
 
@@ -33,31 +39,47 @@ $usuarios = $accounts | Select-Object LocalPath
 	<# Recorre los usuarios existentes #>
         
 	ForEach ($usuario in $usuarios) {
-	
-	$usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
-	
+	<# Por cada usuario #>
+	    $usuario=$usuario.LocalPath -replace ("@{Name=", "") -replace ("}","")
+        <#Ubicacion del Usuario #>
             try {
                 
                 $name=$usuario.Substring(9)	
         	    Write-Host "$($name):"
-
-                if($name.Length.Equals(11)){
-                    
+                
+                if($usuario -match 'a\d\d\d\d\d\d\d\d\d\d'){
+                    <# Es alumno #>
                     $cont=$cont+1
 
                     if (Test-Path "$($usuario)\AppData\Local\Microsoft\Teams"){
-                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\Teams" -Force -Recurse
+                        <# Borrado Local Microsoft Teams #>
                         Write-Host "   $($name) ... Remove Local\Microsoft\Teams" -ForegroundColor Yellow
+				Get-Size "$($usuario)\AppData\Local\Microsoft\Teams"
+                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\Teams" -Force -Recurse
                     
                     }
-
+                    if (Test-Path "$($usuario)\AppData\Local\Microsoft\OneDrive"){
+                        <# Borrado Local Microsoft Teams #>
+ 				Write-Host "   $($name) ... Remove \AppData\Local\Microsoft\OneDrive" -ForegroundColor Yellow
+				Get-Size "$($usuario)\AppData\Local\Microsoft\OneDrive"
+                        Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\OneDrive" -Force -Recurse
+                       
+                    
+                    }
                     if (Test-Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache") {
                         <# Borrado de Cache Chrome #>
-                        Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse
                         Write-Host "   $($name) ... Remove \Local\Google\Chrome\User Data\Default\Cache" -ForegroundColor Yellow
+				Get-Size "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache"
+                        Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse
                         #Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse -Confirm:$false
                     }
-                   
+                   if (Test-Path "$($usuario)\AppData\Local\Google\Chrome\User Data") {
+                        <# Borrado de Cache Chrome #>
+                        Write-Host "   $($name) ... Remove \AppData\Local\Google\Chrome\User Data" -ForegroundColor Yellow
+				Get-Size "$($usuario)\AppData\Local\Google\Chrome\User Data"
+                        Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data" -Force -Recurse
+                        #Remove-Item -Path "$($usuario)\AppData\Local\Google\Chrome\User Data\Default\Cache" -Force -Recurse -Confirm:$false
+                    }
                     if (Test-Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin") {
                         <# Borrado de TeamsMeetingAddin #>
                         Remove-Item -Path "$($usuario)\AppData\Local\Microsoft\TeamsMeetingAddin" -Force -Recurse
@@ -65,33 +87,43 @@ $usuarios = $accounts | Select-Object LocalPath
                     }
 
                     if (Test-Path "$($usuario)\AppData\Roaming\Microsoft\Teams") {
-                        <# Borrado de Roaming teams#>
+                        <# Borrado de Roaming Microsoft Teams#>
                         Remove-Item -Path "$($usuario)\AppData\Roaming\Microsoft\Teams" -Force -Recurse
                         Write-Host "   $($name) ... Remove Roaming\Microsoft\Teams" -ForegroundColor Yellow
                     }
                     
                     if (Test-Path "$($usuario)\AppData\Roaming\Teams\Dictionaries") {
-                        <# Borrado de diccionarios#>
+                        <# Borrado de Dictionaries#>
                         Remove-Item -Path "$($usuario)\AppData\Roaming\Teams\Dictionaries" -Force -Recurse
                         Write-Host "   $($name) ... Remove Roaming\Teams\Dictionaries" -ForegroundColor Yellow
                     }     
                     
                     if (Test-Path "$($usuario)\Desktop") {
-                        <# Borrado de Escritorio#>
-                        #Remove-Item -Path "$($usuario)\Desktop\*.*" -Force -Recurse
-                        Write-Host "   $($name) ... Remove Desktop" -ForegroundColor Red
+                        <# Borrado de Items en Escritorio#>
+				try {				
+					Get-Size "$($usuario)\Desktop"
+                        	Remove-Item -Path "$($usuario)\Desktop\*.*" -Force -Recurse
+                        	Write-Host "   $($name) ... Remove Desktop" -ForegroundColor Red
+				}catch{
+                			Write-Host "No existen archivos en escritorio" -ForegroundColor Red
+            		}
                     }
 
                     if (Test-Path "$($usuario)\Documents") {
-                        <# Borrado de documentos#>
-                        #Remove-Item -Path "$($usuario)\Documents\*.*" -Force -Recurse
-                        Write-Host "   $($name) ... Remove Documents" -ForegroundColor Red
+                        <# Borrado de Items en Documentos#>
+				try {				
+					Get-Size "$($usuario)\Documents"
+                        	Remove-Item -Path "$($usuario)\Documents\*.*" -Force -Recurse
+                        	Write-Host "   $($name) ... Remove Documents" -ForegroundColor Red
+				}catch{
+                			Write-Host "No existen archivos en documentos" -ForegroundColor Red
+            		}
                     }
                 }else{
 			Write-Host "   El usuario no es alumno" -ForegroundColor Yellow
 		}
             }catch{
-                Write-Host "Error: existe un perfil de paginacion" -ForegroundColor Red
+                Write-Host "Perfil de paginacion" -ForegroundColor Red
             }
         }
     }
@@ -102,7 +134,7 @@ $usuarios = $accounts | Select-Object LocalPath
     Write-Host "Disco" 
     ShowDisk
 
-    Start-Sleep -Seconds 10
+    Start-Sleep -Seconds 13
    
 
     #New-ItemProperty -Path "HKEY_CURRENT_USER\Software\Microsoft\Office\Teams" -Name SkipUpnPrefill -Value 1
